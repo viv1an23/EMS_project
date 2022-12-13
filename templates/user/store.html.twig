@@ -1,0 +1,94 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Add User{% endblock %}
+
+{% block body %}
+    <style>
+        .example-wrapper {
+            margin: 1em auto;
+            max-width: 800px;
+            width: 95%;
+            font: 18px/1.5 sans-serif;
+        }
+
+        .example-wrapper code {
+            background: #F5F5F5;
+            padding: 2px 6px;
+        }
+    </style>
+
+    <div class="m-lg-5">
+        <h3>Add User</h3>
+        <div>
+            {{ form_start(form, {'attr' : { 'id' : 'register'}}) }}
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    {{ form_row(form.firstName) }}
+                    <span>{{ form_errors(form.firstName) }}</span>
+                </div>
+                <div class="form-group col-md-6">
+                    {{ form_row(form.lastName) }}
+                    <span>{{ form_errors(form.lastName) }}</span>
+                </div>
+            </div>
+            <div class="form-group">
+                {{ form_row(form.email) }}
+                <span>{{ form_errors(form.email) }}</span>
+            </div>
+            <div class="form-group">
+                {{ form_row(form.password.first) }}
+            </div>
+            <div class="form-group">
+                {{ form_row(form.password.second) }}
+                <span>{{ form_errors(form.password.second) }}</span>
+            </div>
+        {{ form_row(form.submit) }}
+        {{ form_end(form) }}
+        </div>
+    </div>
+
+{% endblock %}
+{% block script %}
+    <script>
+        $(document).ready(function () {
+            $('#register').validate({
+                'errorElement': 'span',
+                'errorClass': 'text-danger',
+                rules: {
+                    'register[firstname]': 'required',
+                    'register[email]': {
+                        required: true,
+                        email: true,
+                    },
+                    'register[password][first]': {
+                        required: true,
+                    },
+                    'register[password][second]': {
+                        required: true,
+                        equalTo: "#register_password_first"
+                    },
+                    'register[country]': true,
+                    'register[state]': true,
+                    'register[city]': true,
+                    'register[image]': {
+                        required: true,
+                        extension: "jpg"
+                    },
+                    'register[hobbies][]': {
+                        required: true
+                    }
+                },
+                messages: {
+                    'register[firstname]': 'This field is required',
+                    'register[email]': {
+                        required: 'This Field is required',
+                        email: 'Enter valid email'
+                    },
+                    password: {
+                        minlength: 'Password must be at least 8 characters long'
+                    }
+                }
+            });
+        })
+    </script>
+{% endblock %}
