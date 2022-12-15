@@ -14,9 +14,10 @@
     {% block javascripts %}
         {{ encore_entry_script_tags('app') }}
     {% endblock %}
+    <script src="/assets/js/custom.js"></script>
 </head>
 <body>
-{% if(app.user) %}
+{% if(app.user and app.user.getTotpSecret() and app.user.isIsTotpVerified()) %}
     <div id="wrapper">
         {% include 'helper/sidebar.html.twig' %}
 
@@ -30,10 +31,11 @@
             </div>
         </div>
     </div>
+
 {% else %}
     {% block auth_body %}{% endblock %}
 {% endif %}
-
 {% block script %}{% endblock %}
+
 </body>
 </html>

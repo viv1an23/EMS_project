@@ -2,20 +2,30 @@
 
 namespace App\Controller;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class SecurityController extends AbstractController
 {
-    #[Route(path: '/login', name: 'app_login')]
+
+    private EntityManagerInterface $entityManager;
+    private TokenStorageInterface $tokenStorage;
+
+    public function __construct(TokenStorageInterface $tokenStorage, EntityManagerInterface $entityManager)
+    {
+        $this->entityManager = $entityManager;
+        $this->tokenStorage = $tokenStorage;
+    }
+
+    #[Route(path: '/', name: 'app_login')]
     public function login(AuthenticationUtils $authenticationUtils): Response
     {
         if ($this->getUser()) {
             $user = $this->getUser();
-            return $this->redirectToRoute('app_dashboard');
         }
 
         // get the login error if there is one

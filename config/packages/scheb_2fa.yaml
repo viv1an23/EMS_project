@@ -1,0 +1,12 @@
+# See the configuration reference at https://symfony.com/bundles/SchebTwoFactorBundle/6.x/configuration.html
+scheb_two_factor:
+    security_tokens:
+        - Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken
+        - Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken
+        - Acme\AuthenticationBundle\Token\CustomAuthenticationToken
+    totp:
+        enabled: true
+        server_name: Server Name       # Server name used in QR code
+        issuer: Issuer Name            # Issuer name used in QR code
+        window: 2
+        template: security/2fa_form.html.twig

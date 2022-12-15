@@ -82,3 +82,16 @@
     </div>
 
 {% endblock %}
+
+{% block script %}
+    <script>
+        console.log("sadasd");
+        $(document).ready(function(){
+            $('#changePasswordBtn').on('click', function() {
+                console.log("asdasd");
+                $("#changePasswordForm").validate();
+            });
+
+        })
+    </script>
+{% endblock %}

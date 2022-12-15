@@ -1,0 +1,26 @@
+{% extends "base.html.twig" %}
+
+{% block auth_body %}
+    <div class="container">
+        <br>
+        <div class="row">
+            <div class="col-lg-5 col-md-7 mx-auto my-auto">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h5>To scan the qr code please download <strong>GOOGLE AUTHENTICATOR</strong> and then enter visible code with in 60 second</h5>
+                        <br>
+                        <img src="{{ path('generate_qr') }}" height="150px" width="150px" />
+                        <h2 class="text-info">Two Factor Security</h2>
+                        <p class="mb-4">Enter 6-digits code for your verification</p>
+                        {{ form_start(form, {'attr' : { 'id' : 'verify'}}) }}
+                        <div class="form-group">
+                            {{ form_row(form.code) }}
+                        </div>
+                        {{ form_row(form.verify) }}
+                        {{ form_end(form) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

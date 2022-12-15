@@ -3,13 +3,17 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Scheb\TwoFactorBundle\Model\Totp\TotpConfigurationInterface;
+use Scheb\TwoFactorBundle\Model\Totp\TwoFactorInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Scheb\TwoFactorBundle\Model\Totp\TotpConfiguration;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
-class User implements UserInterface, PasswordAuthenticatedUserInterface
+class User implements TwoFactorInterface, PasswordAuthenticatedUserInterface, UserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -33,6 +37,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 255)]
     private ?string $lastName = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $opt_requested_at = null;
+
+    #[ORM\Column(length: 10, nullable: true)]
+    private ?string $opt_code = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $totp_secret = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?bool $isTotpVerified = null;
 
     public function getId(): ?int
     {
@@ -58,7 +74,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getUserIdentifier(): string
     {
-        return (string) $this->email;
+        return (string)$this->email;
     }
 
     /**
@@ -124,6 +140,70 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setLastName(string $lastName): self
     {
         $this->lastName = $lastName;
+
+        return $this;
+    }
+
+    public function getOptRequestedAt(): ?\DateTimeInterface
+    {
+        return $this->opt_requested_at;
+    }
+
+    public function setOptRequestedAt(?\DateTimeInterface $opt_requested_at): self
+    {
+        $this->opt_requested_at = $opt_requested_at;
+
+        return $this;
+    }
+
+    public function getOptCode(): ?string
+    {
+        return $this->opt_code;
+    }
+
+    public function setOptCode(?string $opt_code): self
+    {
+        $this->opt_code = $opt_code;
+
+        return $this;
+    }
+
+    public function isTotpAuthenticationEnabled(): bool
+    {
+        return (bool)$this->totp_secret;
+    }
+
+    public function getTotpAuthenticationUsername(): string
+    {
+        // TODO: Implement getTotpAuthenticationUsername() method.
+        return $this->getUserIdentifier();
+    }
+
+    public function getTotpAuthenticationConfiguration(): ?TotpConfigurationInterface
+    {
+        return new TotpConfiguration($this->totp_secret, TotpConfiguration::ALGORITHM_SHA1, 30, 6);
+    }
+
+    public function getTotpSecret(): ?string
+    {
+        return $this->totp_secret;
+    }
+
+    public function setTotpSecret(?string $totp_secret): self
+    {
+        $this->totp_secret = $totp_secret;
+
+        return $this;
+    }
+
+    public function isIsTotpVerified(): ?bool
+    {
+        return $this->isTotpVerified;
+    }
+
+    public function setIsTotpVerified(?bool $isTotpVerified): self
+    {
+        $this->isTotpVerified = $isTotpVerified;
 
         return $this;
     }
