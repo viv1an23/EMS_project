@@ -36,7 +36,7 @@ class TotpAuthController extends AbstractController
             $user->setTotpSecret($this->totpAuthenticator->generateSecret());
             $this->entityManager->flush();
         }
-        if ($form->isSubmitted() && $form->isValid()) {
+        if ($form->isSubmitted()) {
             $code = $form->get('code')->getData();
             $codeVerified = $this->totpAuthenticator->checkCode($user, $code);
 

@@ -50,6 +50,9 @@ class User implements TwoFactorInterface, PasswordAuthenticatedUserInterface, Us
     #[ORM\Column(nullable: true)]
     private ?bool $isTotpVerified = null;
 
+    #[ORM\Column(type: Types::SMALLINT, options: ['default' => 1])]
+    private ?int $active = 1;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -204,6 +207,18 @@ class User implements TwoFactorInterface, PasswordAuthenticatedUserInterface, Us
     public function setIsTotpVerified(?bool $isTotpVerified): self
     {
         $this->isTotpVerified = $isTotpVerified;
+
+        return $this;
+    }
+
+    public function getActive(): ?int
+    {
+        return $this->active;
+    }
+
+    public function setActive(int $active): self
+    {
+        $this->active = $active;
 
         return $this;
     }

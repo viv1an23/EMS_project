@@ -7,8 +7,8 @@
     <!-- DataTales Example -->
     <div class="mt-lg-5">
         <br>
-        <a href="{{ path('store_user') }}"><button class="m-0 float-left font-weight-bold btn btn-success">Add Users</button></a>
-        <div class="card shadow mb-4 mt-lg-5">
+        <a href="{{ path('store_user') }}" class="mb-4"><button class="float-left font-weight-bold btn btn-success">Add Users</button></a>
+        <div class="card shadow mb-5 mt-lg-5 ">
             <div class="card-header py-3">
                 <h6 class="m-0 font-weight-bold text-primary">Users</h6>
 
@@ -18,10 +18,17 @@
                     <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                         <thead>
                         <tr>
-                            <th>First Name</th>
-                            <th>Last Name</th>
-                            <th>Email</th>
-                            <th colspan="3">Action</th>
+                            <th {% if users.isSorted('firstName') %} class="sorted"{% endif %}>
+                                FirstName {{ knp_pagination_sortable(users, '^', 'firstName') }}
+                            </th>
+                            <th {% if users.isSorted('lastName') %} class="sorted"{% endif %}>
+                                LastName {{ knp_pagination_sortable(users, '^', 'lastName') }}
+                            </th>
+                            <th {% if users.isSorted('email') %} class="sorted"{% endif %}>
+                                Email {{ knp_pagination_sortable(users, '^', 'email') }}
+                            </th>
+                            <th class="sorting_disabled">Status</th>
+                            <th colspan="3" class="sorting_disabled">Action</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -31,17 +38,102 @@
                                 <td>{{ user.lastName }}</td>
                                 <td>{{ user.email }}</td>
                                 <td>
-                                    <button class="btn btn-primary">Block</button>
-                                    <button class="btn btn-primary">Edit</button>
+                                    {% if(user.active == 0) %}
+                                        <button class="btn btn-danger user_status" value="{{ user.id }}">Unblock</button>
+                                    {% else %}
+                                        <button class="btn btn-success user_status" value="{{ user.id }}">Block</button>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ path('store_user', {id: user.id}) }}"><button class="btn btn-primary" >Edit</button></a>
                                     <button class="btn btn-danger">Delete</button>
                                 </td>
                             </tr>
                         {% endfor %}
                         </tbody>
                     </table>
+                    <div class="navigation">
+                        {{ knp_pagination_render(users) }}
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
+{#    <div class="modal fade" id="addUserModel" tabindex="-1" role="dialog" aria-labelledby="addUserModel"#}
+{#         aria-hidden="true">#}
+{#        <div class="modal-dialog" role="document">#}
+{#            <div class="modal-content">#}
+{#                <div class="modal-header">#}
+{#                    <h5 class="modal-title" id="exampleModalLabel">Add User</h5>#}
+{#                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">#}
+{#                        <span aria-hidden="true">&times;</span>#}
+{#                    </button>#}
+{#                </div>#}
+{#                <div class="modal-body" id="form-content">#}
+{#                    {% include 'user/form.html.twig' %}#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
+
+
+{% endblock %}
+
+{% block script %}
+    <script>
+        $(document).ready(function () {
+
+            $('.user_status').click(function () {
+                var value = $(this).val();
+                $.ajax({
+                    url: '{{ path("update_status") }}',
+                    type: 'post',
+                    data: {'id': value},
+                    success: function (result) {
+                        location.reload();
+                    }
+                });
+            })
+
+            $('#register').validate({
+                'errorElement': 'span',
+                'errorClass': 'text-danger',
+                rules: {
+                    'register[firstname]': 'required',
+                    'register[email]': {
+                        required: true,
+                        email: true,
+                    },
+                    'register[password][first]': {
+                        required: true,
+                    },
+                    'register[password][second]': {
+                        required: true,
+                        equalTo: "#register_password_first"
+                    },
+                    'register[country]': true,
+                    'register[state]': true,
+                    'register[city]': true,
+                    'register[image]': {
+                        required: true,
+                        extension: "jpg"
+                    },
+                    'register[hobbies][]': {
+                        required: true
+                    }
+                },
+                messages: {
+                    'register[firstname]': 'This field is required',
+                    'register[email]': {
+                        required: 'This Field is required',
+                        email: 'Enter valid email'
+                    },
+                    password: {
+                        minlength: 'Password must be at least 8 characters long'
+                    }
+                }
+            });
+        })
+    </script>
 {% endblock %}

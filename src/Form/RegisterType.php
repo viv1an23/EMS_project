@@ -29,28 +29,31 @@ class RegisterType extends AbstractType
                 'label' => 'Lastname:',
                 'attr' => [
                     'class' => 'form-control'
-                ]
+                 ]
             ])
             ->add('email', EmailType::class, [
                 'label' => 'Email:',
                 'attr' => [
                     'class' => 'form-control'
                 ]
-            ])
-            ->add('password', RepeatedType::class, [
-                'type' => PasswordType::class,
-                'invalid_message' => 'The password fields must match.',
-                'options' => ['attr' => ['class' => 'form-control']],
-                'required' => true,
-                'first_options'  => ['label' => 'Password'],
-                'second_options' => ['label' => 'Repeat Password'],
-            ])
-            ->add('submit', SubmitType::class, [
-                'label' => 'Add User',
-                'attr' => [
-                    'class'=> 'btn btn-primary'
-                ]
             ]);
+        if (!$options['data']->getId()) {
+            $builder
+                ->add('password', RepeatedType::class, [
+                    'type' => PasswordType::class,
+                    'invalid_message' => 'The password fields must match.',
+                    'options' => ['attr' => ['class' => 'form-control']],
+                    'required' => true,
+                    'first_options' => ['label' => 'Password'],
+                    'second_options' => ['label' => 'Repeat Password'],
+                ])
+                ->add('submit', SubmitType::class, [
+                    'label' => 'Add User',
+                    'attr' => [
+                        'class' => 'btn btn-primary'
+                    ]
+                ]);
+        }
     }
 
     public function configureOptions(OptionsResolver $resolver): void
