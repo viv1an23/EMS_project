@@ -7,28 +7,34 @@
     <!-- DataTales Example -->
     <div class="mt-lg-5">
         <br>
-        <a href="{{ path('store_user') }}" class="mb-4"><button class="float-left font-weight-bold btn btn-success">Add Users</button></a>
+        <a href="{{ path('store_user') }}" class="mb-4">
+            <button class="float-left font-weight-bold btn btn-success">Add Users</button>
+        </a>
         <div class="card shadow mb-5 mt-lg-5 ">
             <div class="card-header py-3">
                 <h6 class="m-0 font-weight-bold text-primary">Users</h6>
-
             </div>
             <div class="card-body">
+                {% for message in app.flashes('success') %}
+                    <div class="alert alert-success">
+                        {{ message }}
+                    </div>
+                {% endfor %}
                 <div class="table-responsive">
                     <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                         <thead>
                         <tr>
-                            <th {% if users.isSorted('firstName') %} class="sorted"{% endif %}>
-                                FirstName {{ knp_pagination_sortable(users, '^', 'firstName') }}
+                            <th>
+                                FirstName {{ knp_pagination_sortable(users, '', 'firstName') }}
                             </th>
-                            <th {% if users.isSorted('lastName') %} class="sorted"{% endif %}>
-                                LastName {{ knp_pagination_sortable(users, '^', 'lastName') }}
+                            <th>
+                                LastName {{ knp_pagination_sortable(users, '', 'lastName') }}
                             </th>
-                            <th {% if users.isSorted('email') %} class="sorted"{% endif %}>
-                                Email {{ knp_pagination_sortable(users, '^', 'email') }}
+                            <th>
+                                Email {{ knp_pagination_sortable(users, '', 'email') }}
                             </th>
-                            <th class="sorting_disabled">Status</th>
-                            <th colspan="3" class="sorting_disabled">Action</th>
+                            <th>Status</th>
+                            <th colspan="2">Action</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -39,14 +45,19 @@
                                 <td>{{ user.email }}</td>
                                 <td>
                                     {% if(user.active == 0) %}
-                                        <button class="btn btn-danger user_status" value="{{ user.id }}">Unblock</button>
+                                        <button class="btn btn-danger user_status" value="{{ user.id }}">Unblock
+                                        </button>
                                     {% else %}
                                         <button class="btn btn-success user_status" value="{{ user.id }}">Block</button>
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <a href="{{ path('store_user', {id: user.id}) }}"><button class="btn btn-primary" >Edit</button></a>
-                                    <button class="btn btn-danger">Delete</button>
+                                    <a href="{{ path('store_user', {id: user.id}) }}">
+                                        <button class="btn btn-primary">Edit</button>
+                                    </a>
+
+                                    <a class="btn btn-danger opnDeleteModel" href="#" data-toggle="modal"
+                                       data-target="#deleteUser" data-id="{{ user.id }}" data-email="{{ user.email }}">Delete</a>
                                 </td>
                             </tr>
                         {% endfor %}
@@ -55,35 +66,54 @@
                     <div class="navigation">
                         {{ knp_pagination_render(users) }}
                     </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="deleteUser" tabindex="-1" role="dialog" aria-labelledby="deleteUser" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Delete Confirmation</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div id="emailtxt">
+
+                </div>
+                <span id="message" class="text-warning ml-4 mt-2"></span>
+                <div class="modal-body">
+                    <form class="user" id="delete_user">
+                        <div id="emailTag">
+
+                        </div>
+                        <div class="form-group">
+                            <input type="email" class="form-control form-control-user" id="delete_email"
+                                   name="delete_email"
+                                   placeholder="Enter Email">
+                            <input type="hidden" name="token" value="{{ csrf_token('delete-item') }}"/>
+
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal" id="change_close">
+                                Close
+                            </button>
+                            <button type="button" class="btn btn-primary" id="deleteUserBtn">Delete Record</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
 
-{#    <div class="modal fade" id="addUserModel" tabindex="-1" role="dialog" aria-labelledby="addUserModel"#}
-{#         aria-hidden="true">#}
-{#        <div class="modal-dialog" role="document">#}
-{#            <div class="modal-content">#}
-{#                <div class="modal-header">#}
-{#                    <h5 class="modal-title" id="exampleModalLabel">Add User</h5>#}
-{#                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">#}
-{#                        <span aria-hidden="true">&times;</span>#}
-{#                    </button>#}
-{#                </div>#}
-{#                <div class="modal-body" id="form-content">#}
-{#                    {% include 'user/form.html.twig' %}#}
-{#                </div>#}
-{#            </div>#}
-{#        </div>#}
-{#    </div>#}
-
-
 {% endblock %}
-
 {% block script %}
     <script>
         $(document).ready(function () {
 
+            //Update Status On Click
             $('.user_status').click(function () {
                 var value = $(this).val();
                 $.ajax({
@@ -96,42 +126,45 @@
                 });
             })
 
-            $('#register').validate({
+            //Validate Delete User Form
+            $('#delete_user').validate({
                 'errorElement': 'span',
                 'errorClass': 'text-danger',
                 rules: {
-                    'register[firstname]': 'required',
-                    'register[email]': {
+                    'delete_email': {
                         required: true,
                         email: true,
+                        equalTo : '#validEmail'
                     },
-                    'register[password][first]': {
-                        required: true,
-                    },
-                    'register[password][second]': {
-                        required: true,
-                        equalTo: "#register_password_first"
-                    },
-                    'register[country]': true,
-                    'register[state]': true,
-                    'register[city]': true,
-                    'register[image]': {
-                        required: true,
-                        extension: "jpg"
-                    },
-                    'register[hobbies][]': {
-                        required: true
-                    }
                 },
-                messages: {
-                    'register[firstname]': 'This field is required',
-                    'register[email]': {
-                        required: 'This Field is required',
-                        email: 'Enter valid email'
+                message: {
+                    'delete_email': {
+                        required: 'Email Is Required',
+                        email: 'Enter Valid Email',
                     },
-                    password: {
-                        minlength: 'Password must be at least 8 characters long'
-                    }
+                }
+            });
+
+            //Append Text On Btn CLick
+            $('.opnDeleteModel').click(function () {
+                $('#emailTag').empty();
+                $('<input type="hidden" id="validEmail" value="'+$(this).attr('data-email')+'">').appendTo('#emailTag');
+                $('#emailtxt').empty();
+                $("<strong class='m-2'>Please Enter This Email," + $(this).attr('data-email') + " In Below Text box</strong>").appendTo('#emailtxt');
+            })
+
+            //Ajax Call For Delete User
+            $('#deleteUserBtn').click(function (event) {
+                event.preventDefault();
+                if ($('#delete_user').valid()) {
+                    $.ajax({
+                        url: '/user/delete/' + $('.opnDeleteModel').attr('data-id'),
+                        type: 'post',
+                        data: {'formData': $('#delete_user').serialize()},
+                        success: function (result) {
+                            location.reload();
+                        }
+                    });
                 }
             });
         })

@@ -55,12 +55,14 @@ class UserService
      * @param $user
      * @return bool
      */
-    public function insert($user)
+    public function insertOrUpdate($user): bool
     {
-        $user->setPassword($this->encoder->hashPassword(
-            $user,
-            $user->getPassword()
-        ));
+        if (!$user->getPassword()) {
+            $user->setPassword($this->encoder->hashPassword(
+                $user,
+                $user->getPassword()
+            ));
+        }
         $this->em->persist($user);
         $this->em->flush();
 
@@ -84,7 +86,7 @@ class UserService
      */
     public function sendMail($user)
     {
-        $otp  = mt_rand(100000, 999999);
+        $otp = mt_rand(100000, 999999);
         $mail = (new Email())
             ->from('EMS.management@gmail.com')
             ->to($user->getEmail())
@@ -98,7 +100,7 @@ class UserService
 </html>'
             );
         $this->mailer->send($mail);
-        $this->storeOPT($user,$otp);
+        $this->storeOPT($user, $otp);
         return true;
     }
 
@@ -143,5 +145,10 @@ class UserService
         $this->em->persist($user);
         $this->em->flush();
         return true;
+    }
+
+    public function deleteUser($credentials)
+    {
+        dd($credentials);
     }
 }

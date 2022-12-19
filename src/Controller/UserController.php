@@ -30,7 +30,7 @@ class UserController extends AbstractController
     #[Route('/user', name: 'app_user')]
     public function index(Request $request): Response
     {
-        $allUsers = $this->userRepository->findAll();
+        $allUsers = $this->userRepository->allUsers($this->getUser()->getId());
         $users = $this->paginator->paginate(
         // Doctrine Query, not results
             $allUsers,
@@ -45,28 +45,49 @@ class UserController extends AbstractController
         ]);
     }
 
-    #[Route('/user/store/{id?}', name: 'store_user')]
-    public function store(Request $request, $id = null): Response
+    #[Route('/user/action/{id?}', name: 'store_user')]
+    public function store(Request $request, User $userobj = null): Response
     {
+        $arr = [];
+        if ($userobj instanceof User) {
+            $arr['show_password_field'] = false;
+        }
 
-        $user = empty($id) ? new User() : $this->userRepository->find($id);
+        $user = $userobj instanceof User ? $userobj : new User();
 
-        $form = $this->createForm(RegisterType::class, $user);
+        $form = $this->createForm(RegisterType::class, $user, $arr);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $insertData = $this->userService->insert($form->getData());
-            if ($insertData) {
+            $actionData = $this->userService->insertOrUpdate($form->getData());
+            if ($actionData) {
+                $this->addFlash('success', 'Action Done Successfully');
                 return $this->redirectToRoute('app_user');
             }
-        }   
+        }
         return $this->render('user/store.html.twig', [
             'form' => $form->createView(),
         ]);
     }
 
+    #[Route('/user/delete/{id}', name: 'delete_user')]
+    public function delete(Request $request, User $user = null): JsonResponse
+    {
+        $credentials = array();
+        parse_str($request->request->get('formData'), $credentials);
+
+        $submittedToken = $credentials['token'];
+
+        // 'delete-item' is the same value used in the template to generate the token
+        if ($this->isCsrfTokenValid('delete-item', $submittedToken)) {
+            $this->em->remove($user);
+            $this->em->flush();
+        }
+        return new JsonResponse('1', Response::HTTP_OK);
+    }
+
     #[Route('/user/update_status', name: 'update_status')]
-    public function updateStatus(Request $request)
+    public function updateStatus(Request $request): JsonResponse
     {
         $id = $request->request->get('id');
         $user = $this->userRepository->find($id);
@@ -74,6 +95,5 @@ class UserController extends AbstractController
         $this->em->persist($user);
         $this->em->flush();
         return new JsonResponse('1', Response::HTTP_OK);
-
     }
 }

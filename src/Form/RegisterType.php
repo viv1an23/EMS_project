@@ -12,10 +12,19 @@ use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormInterface;
+use Symfony\Component\Form\FormView;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class RegisterType extends AbstractType
 {
+    public function buildView(FormView $view, FormInterface $form, array $options): void
+    {
+        if ($options['show_password_field']) {
+            $view->vars['show_password_field'] = true;
+        }
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
@@ -29,7 +38,7 @@ class RegisterType extends AbstractType
                 'label' => 'Lastname:',
                 'attr' => [
                     'class' => 'form-control'
-                 ]
+                ]
             ])
             ->add('email', EmailType::class, [
                 'label' => 'Email:',
@@ -37,7 +46,7 @@ class RegisterType extends AbstractType
                     'class' => 'form-control'
                 ]
             ]);
-        if (!$options['data']->getId()) {
+        if ($options['show_password_field']) {
             $builder
                 ->add('password', RepeatedType::class, [
                     'type' => PasswordType::class,
@@ -48,11 +57,18 @@ class RegisterType extends AbstractType
                     'second_options' => ['label' => 'Repeat Password'],
                 ])
                 ->add('submit', SubmitType::class, [
-                    'label' => 'Add User',
-                    'attr' => [
-                        'class' => 'btn btn-primary'
-                    ]
-                ]);
+                'label' => 'Add User',
+                'attr' => [
+                    'class' => 'btn btn-primary'
+                ]
+            ]);
+        }else{
+            $builder->add('submit', SubmitType::class, [
+                'label' => 'Update User',
+                'attr' => [
+                    'class' => 'btn btn-primary'
+                ]
+            ]);
         }
     }
 
@@ -60,6 +76,7 @@ class RegisterType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => User::class,
+            'show_password_field' => true
         ]);
     }
 }
