@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\UserRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use phpDocumentor\Reflection\PseudoTypes\True_;
 use Scheb\TwoFactorBundle\Model\Totp\TotpConfigurationInterface;
 use Scheb\TwoFactorBundle\Model\Totp\TwoFactorInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -52,6 +53,15 @@ class User implements TwoFactorInterface, PasswordAuthenticatedUserInterface, Us
 
     #[ORM\Column(type: Types::SMALLINT, options: ['default' => 1])]
     private ?int $active = 1;
+
+    #[ORM\Column(length: 70, nullable: true)]
+    private ?string $image = null;
+
+    #[ORM\Column(options: ['default' => true])]
+    private ?bool $enforce_otp = true;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $forgot_token = null;
 
     public function getId(): ?int
     {
@@ -219,6 +229,42 @@ class User implements TwoFactorInterface, PasswordAuthenticatedUserInterface, Us
     public function setActive(int $active): self
     {
         $this->active = $active;
+
+        return $this;
+    }
+
+    public function getImage(): ?string
+    {
+        return $this->image;
+    }
+
+    public function setImage(?string $image): self
+    {
+        $this->image = $image;
+
+        return $this;
+    }
+
+    public function isEnforceOtp(): ?bool
+    {
+        return $this->enforce_otp;
+    }
+
+    public function setEnforceOtp(bool $enforce_otp): self
+    {
+        $this->enforce_otp = $enforce_otp;
+
+        return $this;
+    }
+
+    public function getForgotToken(): ?string
+    {
+        return $this->forgot_token;
+    }
+
+    public function setForgotToken(?string $forgot_token): self
+    {
+        $this->forgot_token = $forgot_token;
 
         return $this;
     }

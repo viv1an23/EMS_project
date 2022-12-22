@@ -59,8 +59,6 @@
 /public/bundles/
 /var/
 
-.env
-assets
 ###< symfony/framework-bundle ###
 
 ###> phpunit/phpunit ###

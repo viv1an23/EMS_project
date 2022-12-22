@@ -6,6 +6,8 @@
 
     <div class="container py-5 h-100">
         <div class="row d-flex justify-content-center align-items-center h-100">
+            <div class="card shadow-2-strong card-registration rounded">
+                <div class="card-body w-100">
             <form method="post">
                 {% if error %}
                     <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
@@ -53,8 +55,10 @@
                 <button class="btn btn-lg btn-primary" type="submit">
                     Sign in
                 </button>
+                <a href="{{ path('app_forgot_password') }}" class="float-right">Forget Password?</a>
             </form>
         </div>
     </div>
-
+    </div>
+</div>
 {% endblock %}

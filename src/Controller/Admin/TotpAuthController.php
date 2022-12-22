@@ -1,17 +1,15 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\Admin;
 
-use App\Entity\User;
 use App\Form\TwoFactorType;
 use Doctrine\ORM\EntityManagerInterface;
-use Scheb\TwoFactorBundle\Model\Totp\TwoFactorInterface;
+use Endroid\QrCode\Builder\BuilderInterface;
 use Scheb\TwoFactorBundle\Security\TwoFactor\Provider\Totp\TotpAuthenticatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Endroid\QrCode\Builder\BuilderInterface;
 
 class TotpAuthController extends AbstractController
 {
@@ -36,7 +34,7 @@ class TotpAuthController extends AbstractController
             $user->setTotpSecret($this->totpAuthenticator->generateSecret());
             $this->entityManager->flush();
         }
-        if ($form->isSubmitted()) {
+        if ($form->isSubmitted())   {
             $code = $form->get('code')->getData();
             $codeVerified = $this->totpAuthenticator->checkCode($user, $code);
 

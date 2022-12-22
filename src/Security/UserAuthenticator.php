@@ -16,7 +16,7 @@ use Symfony\Component\Security\Http\Authenticator\Passport\Credentials\PasswordC
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
 use Symfony\Component\Security\Http\Util\TargetPathTrait;
 use Scheb\TwoFactorBundle\Security\TwoFactor\Provider\Totp\TotpAuthenticatorInterface;
-use function PHPUnit\Framework\throwException;
+use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
 
 class UserAuthenticator extends AbstractLoginFormAuthenticator
 {
@@ -25,8 +25,8 @@ class UserAuthenticator extends AbstractLoginFormAuthenticator
     public const LOGIN_ROUTE = 'app_login';
 
     public function __construct(
-        private UrlGeneratorInterface               $urlGenerator,
-        private UserRepository                      $userRepository,
+        private readonly UrlGeneratorInterface      $urlGenerator,
+        private readonly UserRepository             $userRepository,
         private readonly TotpAuthenticatorInterface $totpAuthenticator
     )
     {
@@ -41,10 +41,15 @@ class UserAuthenticator extends AbstractLoginFormAuthenticator
         $user = $this->userRepository->findOneBy(['email' => $email]);
         $code = $request->request->get('code');
 
-//        $user->getTotpSecret() && $user->isIsTotpVerified() ? (!$this->totpAuthenticator->checkCode($user, $code)) ? throw new \ErrorException('Invalid Code');
-        if ($user->getTotpSecret() && $user->isIsTotpVerified()) {
-            if (!$this->totpAuthenticator->checkCode($user, $code)) {
-                throw new \ErrorException('Invalid Code');
+        if ($user) {
+            if ($user->getActive() == 1 && $user->isEnforceOtp()) {
+                if ($user->getTotpSecret() && $user->isIsTotpVerified()) {
+                    if (!$this->totpAuthenticator->checkCode($user, $code)) {
+                        throw new CustomUserMessageAuthenticationException('Invalid Code');
+                    }
+                }
+            } else if ($user->getActive() != 1) {
+                throw new CustomUserMessageAuthenticationException('User Is Blocked');
             }
         }
 

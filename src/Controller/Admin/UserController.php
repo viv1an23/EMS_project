@@ -1,18 +1,19 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\Admin;
 
 use App\Entity\User;
 use App\Form\RegisterType;
 use App\Repository\UserRepository;
+use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use App\Service\UserService;
-use Knp\Component\Pager\PaginatorInterface;
+use Symfony\Component\Filesystem\Filesystem;
 
 
 class UserController extends AbstractController
@@ -21,7 +22,10 @@ class UserController extends AbstractController
 
     private UserService $userService;
 
-    public function __construct(UserRepository $userRepository, UserService $userService, private EntityManagerInterface $em, private PaginatorInterface $paginator)
+    public function __construct(UserRepository $userRepository, UserService $userService,
+                                private EntityManagerInterface $em,
+                                private PaginatorInterface $paginator,
+                                private Filesystem $filesystem)
     {
         $this->userRepository = $userRepository;
         $this->userService = $userService;
@@ -32,7 +36,6 @@ class UserController extends AbstractController
     {
         $allUsers = $this->userRepository->allUsers($this->getUser()->getId());
         $users = $this->paginator->paginate(
-        // Doctrine Query, not results
             $allUsers,
             // Define the page parameter
             $request->query->getInt('page', 1),
@@ -52,14 +55,14 @@ class UserController extends AbstractController
         if ($userobj instanceof User) {
             $arr['show_password_field'] = false;
         }
-
         $user = $userobj instanceof User ? $userobj : new User();
 
         $form = $this->createForm(RegisterType::class, $user, $arr);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $actionData = $this->userService->insertOrUpdate($form->getData());
+            $imageData = $form->get('image')->getData();
+            $actionData = $this->userService->insertOrUpdate($form->getData(),$imageData);
             if ($actionData) {
                 $this->addFlash('success', 'Action Done Successfully');
                 return $this->redirectToRoute('app_user');
@@ -78,22 +81,20 @@ class UserController extends AbstractController
 
         $submittedToken = $credentials['token'];
 
-        // 'delete-item' is the same value used in the template to generate the token
         if ($this->isCsrfTokenValid('delete-item', $submittedToken)) {
+            $this->filesystem->remove('../public/'.$user->getImage());
             $this->em->remove($user);
             $this->em->flush();
         }
         return new JsonResponse('1', Response::HTTP_OK);
     }
 
-    #[Route('/user/update_status', name: 'update_status')]
-    public function updateStatus(Request $request): JsonResponse
+    #[Route('/user/update_status/{id}', name: 'update_status')]
+    public function updateStatus(Request $request, User $user): Response
     {
-        $id = $request->request->get('id');
-        $user = $this->userRepository->find($id);
         $user->setActive(!$user->getActive());
         $this->em->persist($user);
         $this->em->flush();
-        return new JsonResponse('1', Response::HTTP_OK);
+        return $this->redirectToRoute('app_user');
     }
 }

@@ -2,12 +2,15 @@
 
 namespace App\Service;
 
+use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use App\Repository\UserRepository;
+use Symfony\Component\DependencyInjection\Container;
 
 /**
  *
@@ -42,8 +45,8 @@ class UserService
         EntityManagerInterface      $em,
         UserPasswordHasherInterface $userPasswordHasher,
         UserRepository              $userRepository,
-        MailerInterface             $mailer
-    )
+        MailerInterface             $mailer,
+    private readonly Filesystem $filesystem)
     {
         $this->em = $em;
         $this->encoder = $userPasswordHasher;
@@ -55,18 +58,24 @@ class UserService
      * @param $user
      * @return bool
      */
-    public function insertOrUpdate($user): bool
+    public function insertOrUpdate($user, $imageData): bool
     {
-        if (!$user->getPassword()) {
-            $user->setPassword($this->encoder->hashPassword(
-                $user,
-                $user->getPassword()
-            ));
-        }
+
+        $user->getId() == null ? $user->setPassword($this->encoder->hashPassword($user, $user->getPassword())) : $this->filesystem->remove('../public/'.$user->getImage());
+
+        $user->setImage($this->storeImage($imageData));
         $this->em->persist($user);
         $this->em->flush();
 
         return true;
+    }
+
+    public function storeImage($image)
+    {
+
+        $imageName = md5('1999' . date('d:Y:s')) . '.' . $image->guessExtension();
+        $image->move('../public/uploads/images', $imageName);
+        return 'uploads/images/' . $imageName;
     }
 
     /**
@@ -84,8 +93,15 @@ class UserService
      * @return bool
      * @throws TransportExceptionInterface
      */
-    public function sendMail($user)
+    public function sendMail($user, $forForgotPass = false): bool
     {
+        $url = '';
+        $token = '';
+        if($forForgotPass){
+            $token = md5($user->getPassword() . date('m ss'));
+            $url = "http://127.0.0.1:8000/admin/change-password/".$token;
+            $url  = "And Url Is " . $url;
+        }
         $otp = mt_rand(100000, 999999);
         $mail = (new Email())
             ->from('EMS.management@gmail.com')
@@ -95,12 +111,12 @@ class UserService
   <body>
     <p>Hey<br>
        Hey! I Am Form EMS Management System.</p>
-    <p>Your OTP For Password Changing Is <strong>' . $otp . '</strong></p>
+    <p>Your OTP For Password Changing Is <strong>' . $otp . '</strong></p>'.$url.'
   </body>
 </html>'
             );
         $this->mailer->send($mail);
-        $this->storeOPT($user, $otp);
+        $this->storeOPTAndToken($user, $otp, $token);
         return true;
     }
 
@@ -109,10 +125,11 @@ class UserService
      * @param $otp
      * @return bool
      */
-    public function storeOPT($user, $otp): bool
+    public function storeOPTAndToken($user, $otp, $token = null): bool
     {
         $user->setOptRequestedAt(new \DateTime());
         $user->setOptCode($otp);
+        $user->setForgotToken($token);
         $this->em->persist($user);
         $this->em->flush();
 
@@ -140,15 +157,11 @@ class UserService
             $user,
             $pass
         ));
+        $user->setForgotToken(null);
         $user->setOptRequestedAt(null);
         $user->setOptCode(null);
         $this->em->persist($user);
         $this->em->flush();
         return true;
-    }
-
-    public function deleteUser($credentials)
-    {
-        dd($credentials);
     }
 }

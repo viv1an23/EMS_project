@@ -68,7 +68,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     }
 
     /*
-     * find all users
+     * Find all users
      */
     public function allUsers($id)
     {

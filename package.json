@@ -22,6 +22,7 @@
         "build": "encore production --progress"
     },
     "dependencies": {
+        "bootstrap-toggle": "^2.2.2",
         "jquery-validation": "^1.19.5",
         "popper.js": "^1.16.1"
     }

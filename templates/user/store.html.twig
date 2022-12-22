@@ -3,54 +3,50 @@
 {% block title %}Add User{% endblock %}
 
 {% block body %}
-    <style>
-        .example-wrapper {
-            margin: 1em auto;
-            max-width: 800px;
-            width: 95%;
-            font: 18px/1.5 sans-serif;
-        }
+    <div class="d-sm-flex align-items-center justify-content-between mb-4 mt-lg-5">
+        <h1 class="h3 mb-0 text-gray-800">{{ form.vars.show_password_field is defined and form.vars.show_password_field ? 'Add User' : 'Edit User' }}</h1>
+    </div>
+    <div class="row mt-lg-5">
+        <div class="col-12">
+            <div class="card shadow-2-strong card-registration" style="border-radius: 15px;">
+                <div class="card-body w-100">
+                    {{ form_start(form, {'attr' : { 'id' : 'register'}}) }}
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            {{ form_row(form.firstName) }}
+                            <span>{{ form_errors(form.firstName) }}</span>
+                        </div>
+                        <div class="form-group col-md-6">
+                            {{ form_row(form.lastName) }}
+                            <span>{{ form_errors(form.lastName) }}</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        {{ form_row(form.email) }}
+                        <span>{{ form_errors(form.email) }}</span>
+                    </div>
+                    <div class="form-group">
+                        {{ form_row(form.image) }}
+                    </div>
+                    {% if form.vars.show_password_field is defined and form.vars.show_password_field %}
+                        <div class="form-group">
+                            {{ form_row(form.password.first) }}
+                        </div>
+                        <div class="form-group">
+                            {{ form_row(form.password.second) }}
+                            <span>{{ form_errors(form.password.second) }}</span>
+                        </div>
+                    {% endif %}
 
-        .example-wrapper code {
-            background: #F5F5F5;
-            padding: 2px 6px;
-        }
-    </style>
-
-    <div class="m-lg-5">
-        <h3>Add User</h3>
-        <div>
-            {{ form_start(form, {'attr' : { 'id' : 'register'}}) }}
-            <div class="form-row">
-                <div class="form-group col-md-6">
-                    {{ form_row(form.firstName) }}
-                    <span>{{ form_errors(form.firstName) }}</span>
-                </div>
-                <div class="form-group col-md-6">
-                    {{ form_row(form.lastName) }}
-                    <span>{{ form_errors(form.lastName) }}</span>
+                    <div class="form-group">
+                        {{ form_row(form.submit) }}
+                    </div>
+                    {{ form_end(form) }}
                 </div>
             </div>
-            <div class="form-group">
-                {{ form_row(form.email) }}
-                <span>{{ form_errors(form.email) }}</span>
-            </div>
-            {% if form.vars.show_password_field is defined and form.vars.show_password_field %}
-                <div class="form-group">
-                    {{ form_row(form.password.first) }}
-                </div>
-                <div class="form-group">
-                    {{ form_row(form.password.second) }}
-                    <span>{{ form_errors(form.password.second)}}</span>
-                </div>
-            {% endif %}
-
-            <div class="form-group">
-                {{ form_row(form.submit) }}
-            </div>
-        {{ form_end(form) }}
         </div>
     </div>
+
 
 {% endblock %}
 {% block script %}
@@ -72,15 +68,9 @@
                         required: true,
                         equalTo: "#register_password_first"
                     },
-                    'register[country]': true,
-                    'register[state]': true,
-                    'register[city]': true,
                     'register[image]': {
                         required: true,
                         extension: "jpg"
-                    },
-                    'register[hobbies][]': {
-                        required: true
                     }
                 },
                 messages: {
